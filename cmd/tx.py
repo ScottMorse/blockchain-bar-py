@@ -2,7 +2,14 @@
 from database.tx import Tx
 from database.state import State
 
-def add_tx(*, to_acc: str, from_acc: str, is_reward: bool, data: str, amount: int):
+def add_tx(*, 
+    to_acc: str, 
+    from_acc: str, 
+    is_reward: bool, 
+    data: str, 
+    amount: int,
+    data_dir: str,
+):
     if not to_acc:
         raise ValueError(f"No 'to' account specified")
     if not is_reward and not from_acc:
@@ -15,10 +22,10 @@ def add_tx(*, to_acc: str, from_acc: str, is_reward: bool, data: str, amount: in
         data="reward" if is_reward else data
     )
 
-    state = State.init_from_disk()
+    state = State.init_from_disk(data_dir)
     state.add(tx)
 
     print(f"Awarded {amount} to {to_acc}" if is_reward else f"Transfer {amount} from {from_acc} to {to_acc}")
     print("Transaction successfully added.")
 
-    state.persist()
+    state.persist(data_dir)

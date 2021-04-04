@@ -1,22 +1,15 @@
-from io import TextIOWrapper
 import json
-import io
 import pathlib
-import os
 from time import time
-from hashlib import sha256
 from copy import deepcopy
 from typing import Dict, List
 
-from .genesis import load_genesis
+from .genesis import Genesis
 from .tx import Tx
 from .block import Block, BlockHeader
+from .fs import get_blocks_db_file_path, get_genesis_file_path, init_data_dir
 
 mod_dir = pathlib.Path(__file__).parent.absolute()
-
-genesis_path = os.path.join(mod_dir, 'genesis.json')
-legacy_db_path = os.path.join(mod_dir, 'tx.db')
-db_path = os.path.join(mod_dir, 'block.db')
 
 class State:
 
@@ -38,28 +31,16 @@ class State:
         return self._latest_block_hash
 
     @classmethod
-    def init_from_disk_legacy(cls):
+    def init_from_disk(cls, data_dir: str):
+        init_data_dir(data_dir)
 
-        gen = load_genesis(os.path.join(pathlib.Path(__file__).parent.absolute(), 'genesis.json'))
-
-        state = cls(balances=deepcopy(gen.balances), tx_mempool=[])
-        with open(legacy_db_path) as f:
-            for line in f.readlines():
-                if line != '\n':
-                    state.add(Tx.init_from_json(json.loads(line)))
-    
-        return state
-
-    @classmethod
-    def init_from_disk(cls):
-
-        gen = load_genesis(os.path.join(pathlib.Path(__file__).parent.absolute(), 'genesis.json'))
+        gen = Genesis.load_from_disk(get_genesis_file_path(data_dir))
 
         state = cls(balances=deepcopy(gen.balances), tx_mempool=[])
-        with open(db_path) as f:
+        with open(get_blocks_db_file_path(data_dir)) as f:
             for line in f.readlines():
                 if line != '\n':
-                    state.add_block(Block.init_from_json(json.loads(line)))
+                    state.apply_block(Block.init_from_json(json.loads(line)))
     
         return state
 
@@ -73,7 +54,7 @@ class State:
         self.apply(tx)
         self.tx_mempool.append(tx)
 
-    def persist(self):
+    def persist(self, data_dir: str):
         if len(self.tx_mempool) == 0:
             print(f"No TXs to persist")
             return
@@ -88,7 +69,7 @@ class State:
 
         block_json = block.to_json()
         print(f"Persisting block: {json.dumps(block_json, indent=2)}")
-        with open(db_path, 'a') as f:
+        with open(get_blocks_db_file_path(data_dir), 'a') as f:
             f.write(f"{json.dumps(block_json, separators=[',',':'])}\n")
 
         self._latest_block_hash = block.create_hash()

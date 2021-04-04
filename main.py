@@ -1,6 +1,6 @@
 """
 Usage:
-  main.py (--version | --balances | tx --to=to --amount=amount (--from=from --data=data | --reward))
+  main.py (--version | --balances --data-dir=<dir> | tx --to=to --amount=amount --data-dir=<dir> (--from=from --data=data | --reward)) 
 """
 from docopt import docopt
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     if args.get('--version'):
         describe_version()
     elif args.get('--balances'):
-        describe_balances()
+        describe_balances(data_dir=args.get('--data-dir'))
     elif args['tx']:
         add_tx(
             to_acc=args.get('--to'),
@@ -26,4 +26,5 @@ if __name__ == "__main__":
             amount=int(args.get('--amount')),
             is_reward=args.get('--reward'),
             data=args.get('--data'),
+            data_dir=args.get('--data-dir')
         )
