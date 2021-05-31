@@ -9,17 +9,23 @@ class BlockHeader:
     @classmethod
     def init_from_json(cls, j: dict):
         return cls(
-            parent_hash=j["parent_hash"],
+            parent=j["parent"],
+            number=j["number"],
             time=j["time"]
         )
 
-    def __init__(self, *, parent_hash: str, time: float):
-        self._parent_hash = parent_hash
+    def __init__(self, *, parent: str, number: int, time: float):
+        self._parent = parent
+        self._number = number
         self._time = time
 
     @property
-    def parent_hash(self) -> str:
-        return self._parent_hash
+    def parent(self) -> str:
+        return self._parent
+
+    @property
+    def number(self) -> int:
+        return self._number
 
     @property
     def time(self) -> float:
@@ -27,7 +33,8 @@ class BlockHeader:
 
     def to_json(self) -> dict:
         return {
-            "parent_hash": self.parent_hash,
+            "parent": self.parent,
+            "number": self.number,
             "time": self.time
         }
 

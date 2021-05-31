@@ -8,6 +8,7 @@ from .genesis import Genesis
 from .tx import Tx
 from .block import Block, BlockHeader
 from .fs import get_blocks_db_file_path, get_genesis_file_path, init_data_dir
+from .config import BLOCK_SIZE
 
 mod_dir = pathlib.Path(__file__).parent.absolute()
 
@@ -40,7 +41,7 @@ class State:
         with open(get_blocks_db_file_path(data_dir)) as f:
             for line in f.readlines():
                 if line != '\n':
-                    state.apply_block(Block.init_from_json(json.loads(line)))
+                    state.apply_block(Block.init_from_json(json.loads(line)['block']))
     
         return state
 
@@ -61,7 +62,7 @@ class State:
 
         block = Block(
             header=BlockHeader(
-                parent_hash=self.latest_block_hash, 
+                parent=self.latest_block_hash, 
                 time=time()
             ),
             txs=self.tx_mempool
