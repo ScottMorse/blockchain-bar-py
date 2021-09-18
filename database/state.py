@@ -2,7 +2,7 @@ import json
 import pathlib
 from time import time
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from .genesis import Genesis
 from .tx import Tx
@@ -18,6 +18,7 @@ class State:
         self._balances = balances
         self._tx_mempool = tx_mempool
         self._latest_block_hash = "0" * 32
+        self._latest_block = None
 
     @property
     def balances(self) -> Dict[str, int]:
@@ -31,6 +32,10 @@ class State:
     def latest_block_hash(self) -> str:
         return self._latest_block_hash
 
+    @property
+    def latest_block(self) -> Union[Block, None]:
+        return self._latest_block
+
     @classmethod
     def init_from_disk(cls, data_dir: str):
         init_data_dir(data_dir)
@@ -39,9 +44,15 @@ class State:
 
         state = cls(balances=deepcopy(gen.balances), tx_mempool=[])
         with open(get_blocks_db_file_path(data_dir)) as f:
-            for line in f.readlines():
+            lines = f.readlines()
+            for i in range(len(lines)):
+                line = lines[i]
                 if line != '\n':
-                    state.apply_block(Block.init_from_json(json.loads(line)['block']))
+                    block = Block.init_from_json(json.loads(line)['block'])
+                    state.apply_block(block)
+                    if i == len(lines) - 1:
+                        state._latest_block = block
+                        state._latest_block_hash = block.create_hash()
     
         return state
 
@@ -74,6 +85,7 @@ class State:
             f.write(f"{json.dumps(block_json, separators=[',',':'])}\n")
 
         self._latest_block_hash = block.create_hash()
+        self._latest_block = block
         self._tx_mempool = []
 
         return self.latest_block_hash

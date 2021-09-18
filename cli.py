@@ -1,12 +1,12 @@
 """
 Usage:
-  main.py (--version | --balances --data-dir=<dir> | tx --to=to --amount=amount --data-dir=<dir> (--from=from --data=data | --reward)) 
+  cli.py (--version | --balances --data-dir=<dir> | tx --to=to --amount=amount --data-dir=<dir> (--from=from --data=data | --reward)) 
 """
 from docopt import docopt
 
-from cmd.version import describe_version
-from cmd.balances import describe_balances
-from cmd.tx import add_tx
+from cli.version import describe_version
+from cli.balances import describe_balances
+from cli.tx import add_tx
 
 if __name__ == "__main__":
     args = docopt(__doc__)
